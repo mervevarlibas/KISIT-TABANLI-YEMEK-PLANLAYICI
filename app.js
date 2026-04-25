@@ -145,7 +145,12 @@ async function optimize_plan(constraints) {
     excludeAllergens: constraints.allergens,
     preference: constraints.dietPreference
   });
-  const filteredFoods = candidateFoods.filter((food) => !constraints.dislikes.includes(normalizeText(food.name)));
+  const filteredFoods = candidateFoods.filter((food) => {
+    const normalizedName = normalizeText(food.name);
+    const blockedByDislike = constraints.dislikes.includes(normalizedName);
+    const blockedByAllergyAsFood = constraints.allergens.includes(normalizedName);
+    return !blockedByDislike && !blockedByAllergyAsFood;
+  });
   const foodMap = new Map(filteredFoods.map((food) => [food.id, food]));
   const templates = getMealTemplatePool(constraints.dietPreference).filter((template) =>
     template.items.every((item) => foodMap.has(item.id))

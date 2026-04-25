@@ -4,6 +4,18 @@ const path = require("path");
 const DB_PATH = path.join(__dirname, "..", "nutrition.db");
 const db = new sqlite3.Database(DB_PATH);
 
+function normalizeText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/ı/g, "i")
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c");
+}
+
 const seedFoods = [
   {
     id: "oat",
@@ -287,6 +299,7 @@ function hydrateFood(row) {
 }
 
 async function searchFoods({ query = "", preference = "none", excludeAllergens = [] }) {
+  const normalizedExclusions = excludeAllergens.map((x) => normalizeText(x));
   const rows = await all(
     `SELECT * FROM foods WHERE lower(name) LIKE ? ORDER BY avg_price_tl_per_100g ASC`,
     [`%${String(query).toLowerCase()}%`]
@@ -295,8 +308,10 @@ async function searchFoods({ query = "", preference = "none", excludeAllergens =
   return rows
     .map(hydrateFood)
     .filter((food) => {
-      const hasForbiddenAllergen = excludeAllergens.some((a) => food.allergens.includes(a));
-      if (hasForbiddenAllergen) return false;
+      const foodName = normalizeText(food.name);
+      const hasForbiddenAllergen = normalizedExclusions.some((a) => food.allergens.includes(a));
+      const isDirectFoodExcluded = normalizedExclusions.includes(foodName);
+      if (hasForbiddenAllergen || isDirectFoodExcluded) return false;
       if (preference === "none") return true;
       if (preference === "vegan") return food.tags.includes("vegan");
       if (preference === "vegetarian") return food.tags.includes("vegan") || food.tags.includes("vegetarian");
