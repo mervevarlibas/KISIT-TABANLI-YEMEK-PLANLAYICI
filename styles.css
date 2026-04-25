@@ -4,9 +4,9 @@
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f6fb;
-  color: #1f2937;
+  font-family: 'Georgia', sans-serif;
+  background: #c7aaf2;
+  color: #11171f;
 }
 
 .container {
@@ -22,11 +22,11 @@ h3 {
 }
 
 .subtitle {
-  color: #4b5563;
+  color: #340202;
 }
 
 .card {
-  background: #fff;
+  background: #d5b8c7;
   border-radius: 12px;
   padding: 20px;
   margin-top: 16px;
@@ -43,7 +43,7 @@ h3 {
 label {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
+  font-size: 16px;
   gap: 6px;
   margin-bottom: 10px;
 }
@@ -54,7 +54,7 @@ button {
   padding: 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 button {

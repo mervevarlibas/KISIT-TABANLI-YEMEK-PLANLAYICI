@@ -92,6 +92,116 @@ const seedFoods = [
     allergens: ["nuts"],
     tags: ["vegan", "vegetarian"],
     avgPrice: 14
+  },
+  {
+    id: "salmon",
+    name: "Somon",
+    kcal: 208,
+    protein: 20,
+    carbs: 0,
+    fat: 13,
+    allergens: ["fish"],
+    tags: [],
+    avgPrice: 18
+  },
+  {
+    id: "potato",
+    name: "Patates",
+    kcal: 77,
+    protein: 2,
+    carbs: 17,
+    fat: 0.1,
+    allergens: [],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 1.8
+  },
+  {
+    id: "yogurt",
+    name: "Yogurt",
+    kcal: 59,
+    protein: 10,
+    carbs: 3.6,
+    fat: 0.4,
+    allergens: ["lactose"],
+    tags: ["vegetarian"],
+    avgPrice: 4.2
+  },
+  {
+    id: "chickpea",
+    name: "Nohut",
+    kcal: 164,
+    protein: 8.9,
+    carbs: 27.4,
+    fat: 2.6,
+    allergens: [],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 3.4
+  },
+  {
+    id: "bulgur",
+    name: "Bulgur",
+    kcal: 83,
+    protein: 3.1,
+    carbs: 18.6,
+    fat: 0.2,
+    allergens: ["gluten"],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 2.4
+  },
+  {
+    id: "spinach",
+    name: "Ispanak",
+    kcal: 23,
+    protein: 2.9,
+    carbs: 3.6,
+    fat: 0.4,
+    allergens: [],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 2.1
+  },
+  {
+    id: "avocado",
+    name: "Avokado",
+    kcal: 160,
+    protein: 2,
+    carbs: 8.5,
+    fat: 14.7,
+    allergens: [],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 7.5
+  },
+  {
+    id: "apple",
+    name: "Elma",
+    kcal: 52,
+    protein: 0.3,
+    carbs: 14,
+    fat: 0.2,
+    allergens: [],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 2.3
+  },
+  {
+    id: "beef",
+    name: "Dana Eti",
+    kcal: 250,
+    protein: 26,
+    carbs: 0,
+    fat: 15,
+    allergens: [],
+    tags: [],
+    avgPrice: 16
+  },
+  {
+    id: "pasta",
+    name: "Makarna",
+    kcal: 131,
+    protein: 5,
+    carbs: 25,
+    fat: 1.1,
+    allergens: ["gluten"],
+    tags: ["vegan", "vegetarian"],
+    avgPrice: 2.7
   }
 ];
 
@@ -137,27 +247,33 @@ async function initDb() {
     )
   `);
 
-  const row = await get("SELECT COUNT(1) AS count FROM foods");
-  if (!row || row.count === 0) {
-    for (const food of seedFoods) {
-      await run(
-        `INSERT INTO foods (
-          id, name, kcal_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g,
-          allergens_json, tags_json, avg_price_tl_per_100g
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          food.id,
-          food.name,
-          food.kcal,
-          food.protein,
-          food.carbs,
-          food.fat,
-          JSON.stringify(food.allergens),
-          JSON.stringify(food.tags),
-          food.avgPrice
-        ]
-      );
-    }
+  for (const food of seedFoods) {
+    await run(
+      `INSERT INTO foods (
+        id, name, kcal_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g,
+        allergens_json, tags_json, avg_price_tl_per_100g
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        kcal_per_100g = excluded.kcal_per_100g,
+        protein_per_100g = excluded.protein_per_100g,
+        carbs_per_100g = excluded.carbs_per_100g,
+        fat_per_100g = excluded.fat_per_100g,
+        allergens_json = excluded.allergens_json,
+        tags_json = excluded.tags_json,
+        avg_price_tl_per_100g = excluded.avg_price_tl_per_100g`,
+      [
+        food.id,
+        food.name,
+        food.kcal,
+        food.protein,
+        food.carbs,
+        food.fat,
+        JSON.stringify(food.allergens),
+        JSON.stringify(food.tags),
+        food.avgPrice
+      ]
+    );
   }
 }
 
