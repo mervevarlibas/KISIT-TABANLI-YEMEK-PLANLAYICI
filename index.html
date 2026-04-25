@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Meal Planner MVP</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Smart Meal Planner (MVP)</h1>
+      <p class="subtitle">
+        Alerji, butce ve hedefe gore guvenli haftalik yemek plani
+      </p>
+
+      <section class="card">
+        <h2>Kullanici Bilgileri</h2>
+        <form id="plannerForm">
+          <div class="grid">
+            <label>
+              Kilo (kg)
+              <input type="number" id="weight" min="30" max="250" required />
+            </label>
+            <label>
+              Boy (cm)
+              <input type="number" id="height" min="120" max="230" required />
+            </label>
+            <label>
+              Yas
+              <input type="number" id="age" min="14" max="100" required />
+            </label>
+            <label>
+              Cinsiyet
+              <select id="gender" required>
+                <option value="male">Erkek</option>
+                <option value="female">Kadin</option>
+              </select>
+            </label>
+            <label>
+              Aktivite
+              <select id="activity" required>
+                <option value="1.2">Dusuk</option>
+                <option value="1.375">Hafif</option>
+                <option value="1.55" selected>Orta</option>
+                <option value="1.725">Yuksek</option>
+              </select>
+            </label>
+            <label>
+              Ogun Sayisi
+              <select id="mealCount" required>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Haftalik Butce (TL)
+              <input type="number" id="budget" min="100" step="10" required />
+            </label>
+            <label>
+              Hedef
+              <select id="goal" required>
+                <option value="lose">Kilo Verme</option>
+                <option value="maintain" selected>Dengeli Beslenme</option>
+                <option value="gain">Kas Kazanimi</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            Alerjiler (virgulle ayir) - ornek: gluten, nuts, lactose
+            <input type="text" id="allergens" placeholder="gluten, nuts" />
+          </label>
+
+          <label>
+            Tercihler
+            <select id="dietPreference">
+              <option value="none">Standart</option>
+              <option value="vegan">Vegan</option>
+              <option value="vegetarian">Vejetaryen</option>
+            </select>
+          </label>
+
+          <label>
+            Sevmedigi Gidalar (virgulle ayir)
+            <input type="text" id="dislikes" placeholder="broccoli, lentil" />
+          </label>
+
+          <button type="submit">Plan Uret</button>
+        </form>
+      </section>
+
+      <section class="card hidden" id="resultCard">
+        <div class="result-header">
+          <h2>Haftalik Plan</h2>
+          <button id="replanBtn" type="button">Bu Ogunu Degistir (Demo)</button>
+        </div>
+        <div id="validation"></div>
+        <div id="planOutput"></div>
+        <h3>Alisveris Listesi</h3>
+        <ul id="shoppingList"></ul>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
