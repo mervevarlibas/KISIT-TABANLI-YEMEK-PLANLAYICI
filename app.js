@@ -14,20 +14,71 @@ const ALLERGEN_ALIASES = {
 };
 
 const form = document.getElementById("plannerForm");
+const plannerCard = document.getElementById("plannerCard");
 const resultCard = document.getElementById("resultCard");
 const validationEl = document.getElementById("validation");
 const planOutput = document.getElementById("planOutput");
 const shoppingList = document.getElementById("shoppingList");
 const replanBtn = document.getElementById("replanBtn");
+const savePlanBtn = document.getElementById("savePlanBtn");
+const authCard = document.getElementById("authCard");
+const userCard = document.getElementById("userCard");
+const authEmailInput = document.getElementById("authEmail");
+const authPasswordInput = document.getElementById("authPassword");
+const authMessage = document.getElementById("authMessage");
+const signupBtn = document.getElementById("signupBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const userEmail = document.getElementById("userEmail");
 
 let latestPlan = null;
 let latestInput = null;
+let latestTargets = null;
+let supabaseClient = null;
+let currentSession = null;
 
 function showError(message) {
   resultCard.classList.remove("hidden");
   validationEl.innerHTML = `<p class="danger">${message}</p>`;
   planOutput.innerHTML = "";
   shoppingList.innerHTML = "";
+}
+
+function setAuthMessage(message, isError = false) {
+  authMessage.textContent = message;
+  authMessage.className = isError ? "danger" : "muted";
+}
+
+function applyAuthUi(session) {
+  const loggedIn = Boolean(session?.user);
+  authCard.classList.toggle("hidden", loggedIn);
+  userCard.classList.toggle("hidden", !loggedIn);
+  plannerCard.classList.toggle("hidden", !loggedIn);
+  if (!loggedIn) {
+    resultCard.classList.add("hidden");
+    userEmail.textContent = "";
+    return;
+  }
+  userEmail.textContent = `Hos geldin, ${session.user.email}`;
+}
+
+async function initSupabaseAuth() {
+  const response = await fetch("/api/config/public");
+  const config = await response.json();
+  if (!config?.supabaseUrl || !config?.supabasePublishableKey) {
+    throw new Error("Supabase public config eksik.");
+  }
+  supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey);
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+  currentSession = session;
+  applyAuthUi(session);
+
+  supabaseClient.auth.onAuthStateChange((_event, sessionData) => {
+    currentSession = sessionData;
+    applyAuthUi(sessionData);
+  });
 }
 
 async function search_foods(query, filters = {}) {
@@ -119,20 +170,56 @@ function getMealTemplatePool(dietPreference = "none") {
     { mealType: "Kahvalti", recipeName: "Yumurtali Pirinc Tabagi", items: [{ id: "egg", grams: 120 }, { id: "rice", grams: 120 }] },
     { mealType: "Kahvalti", recipeName: "Yogurt ve Elma Kasesi", items: [{ id: "yogurt", grams: 180 }, { id: "apple", grams: 140 }] },
     { mealType: "Kahvalti", recipeName: "Ispanakli Omlet", items: [{ id: "egg", grams: 140 }, { id: "spinach", grams: 120 }] },
+    { mealType: "Kahvalti", recipeName: "Avokadolu Yulaf Tabagi", items: [{ id: "oat", grams: 70 }, { id: "avocado", grams: 80 }] },
+    { mealType: "Kahvalti", recipeName: "Muzlu Yogurt Bowl", items: [{ id: "yogurt", grams: 180 }, { id: "banana", grams: 100 }] },
+    { mealType: "Kahvalti", recipeName: "Nohutlu Kahvalti Tabagi", items: [{ id: "chickpea", grams: 130 }, { id: "egg", grams: 100 }] },
+    { mealType: "Kahvalti", recipeName: "Elma ve Yulaf Karisimi", items: [{ id: "oat", grams: 80 }, { id: "apple", grams: 150 }] },
+    { mealType: "Kahvalti", recipeName: "Bulgurlu Omlet", items: [{ id: "egg", grams: 130 }, { id: "bulgur", grams: 100 }] },
+    { mealType: "Kahvalti", recipeName: "Tofulu Kahvalti Bowl", items: [{ id: "tofu", grams: 140 }, { id: "rice", grams: 100 }] },
+
     { mealType: "Ogle", recipeName: "Tavuklu Pirinc Pilavi", items: [{ id: "chicken", grams: 160 }, { id: "rice", grams: 180 }] },
     { mealType: "Ogle", recipeName: "Mercimekli Pirinc Pilavi", items: [{ id: "lentil", grams: 180 }, { id: "rice", grams: 140 }] },
     { mealType: "Ogle", recipeName: "Nohutlu Bulgur Pilavi", items: [{ id: "chickpea", grams: 180 }, { id: "bulgur", grams: 160 }] },
     { mealType: "Ogle", recipeName: "Somon ve Patates", items: [{ id: "salmon", grams: 150 }, { id: "potato", grams: 180 }] },
     { mealType: "Ogle", recipeName: "Dana Eti ve Bulgur", items: [{ id: "beef", grams: 150 }, { id: "bulgur", grams: 170 }] },
+    { mealType: "Ogle", recipeName: "Tavuklu Makarna Salatasi", items: [{ id: "chicken", grams: 140 }, { id: "pasta", grams: 150 }] },
+    { mealType: "Ogle", recipeName: "Tofulu Nohut Bowl", items: [{ id: "tofu", grams: 160 }, { id: "chickpea", grams: 130 }] },
+    { mealType: "Ogle", recipeName: "Mercimek ve Patates Tabagi", items: [{ id: "lentil", grams: 180 }, { id: "potato", grams: 160 }] },
+    { mealType: "Ogle", recipeName: "Somonlu Pirinc Bowl", items: [{ id: "salmon", grams: 130 }, { id: "rice", grams: 170 }] },
+    { mealType: "Ogle", recipeName: "Dana Eti ve Patates", items: [{ id: "beef", grams: 140 }, { id: "potato", grams: 180 }] },
+    { mealType: "Ogle", recipeName: "Ispanakli Nohut Tabagi", items: [{ id: "spinach", grams: 150 }, { id: "chickpea", grams: 160 }] },
+    { mealType: "Ogle", recipeName: "Tavuklu Bulgur Pilavi", items: [{ id: "chicken", grams: 150 }, { id: "bulgur", grams: 170 }] },
+    { mealType: "Ogle", recipeName: "Bulgurlu Mercimek Kasesi", items: [{ id: "bulgur", grams: 150 }, { id: "lentil", grams: 170 }] },
+    { mealType: "Ogle", recipeName: "Tofulu Makarna", items: [{ id: "tofu", grams: 160 }, { id: "pasta", grams: 150 }] },
+    { mealType: "Ogle", recipeName: "Yumurtali Patates Tabagi", items: [{ id: "egg", grams: 120 }, { id: "potato", grams: 180 }] },
+    { mealType: "Ogle", recipeName: "Yogurtlu Nohut Kasesi", items: [{ id: "yogurt", grams: 150 }, { id: "chickpea", grams: 150 }] },
+    { mealType: "Ogle", recipeName: "Pirincli Ispanak Tabagi", items: [{ id: "rice", grams: 160 }, { id: "spinach", grams: 160 }] },
+
     { mealType: "Aksam", recipeName: "Tavuk ve Mercimek Tabagi", items: [{ id: "chicken", grams: 150 }, { id: "lentil", grams: 160 }] },
     { mealType: "Aksam", recipeName: "Tofulu Pirinc Bowl", items: [{ id: "tofu", grams: 180 }, { id: "rice", grams: 160 }] },
     { mealType: "Aksam", recipeName: "Tavuklu Makarna", items: [{ id: "chicken", grams: 150 }, { id: "pasta", grams: 160 }] },
     { mealType: "Aksam", recipeName: "Nohut ve Pirinc Tabagi", items: [{ id: "chickpea", grams: 180 }, { id: "rice", grams: 150 }] },
     { mealType: "Aksam", recipeName: "Ispanakli Tofu Sote", items: [{ id: "tofu", grams: 180 }, { id: "spinach", grams: 140 }] },
+    { mealType: "Aksam", recipeName: "Somonlu Bulgur Tabagi", items: [{ id: "salmon", grams: 140 }, { id: "bulgur", grams: 150 }] },
+    { mealType: "Aksam", recipeName: "Dana Eti ve Pirinc", items: [{ id: "beef", grams: 140 }, { id: "rice", grams: 150 }] },
+    { mealType: "Aksam", recipeName: "Mercimekli Makarna", items: [{ id: "lentil", grams: 150 }, { id: "pasta", grams: 150 }] },
+    { mealType: "Aksam", recipeName: "Yumurtali Ispanak Tabagi", items: [{ id: "egg", grams: 130 }, { id: "spinach", grams: 160 }] },
+    { mealType: "Aksam", recipeName: "Nohutlu Patates Kasesi", items: [{ id: "chickpea", grams: 170 }, { id: "potato", grams: 170 }] },
+    { mealType: "Aksam", recipeName: "Tavuklu Avokado Bowl", items: [{ id: "chicken", grams: 140 }, { id: "avocado", grams: 80 }] },
+    { mealType: "Aksam", recipeName: "Tofulu Bulgur Tabagi", items: [{ id: "tofu", grams: 170 }, { id: "bulgur", grams: 150 }] },
+    { mealType: "Aksam", recipeName: "Somonlu Patates ve Ispanak", items: [{ id: "salmon", grams: 130 }, { id: "potato", grams: 140 }, { id: "spinach", grams: 120 }] },
+    { mealType: "Aksam", recipeName: "Dana ve Mercimek Tabagi", items: [{ id: "beef", grams: 130 }, { id: "lentil", grams: 150 }] },
+    { mealType: "Aksam", recipeName: "Tavuklu Nohut Kasesi", items: [{ id: "chicken", grams: 140 }, { id: "chickpea", grams: 150 }] },
+
     { mealType: "Ara Ogun", recipeName: "Muz ve Badem Atistirmasi", items: [{ id: "banana", grams: 120 }, { id: "almond", grams: 30 }] },
     { mealType: "Ara Ogun", recipeName: "Mercimek Salatasi", items: [{ id: "lentil", grams: 140 }] },
     { mealType: "Ara Ogun", recipeName: "Elma ve Badem", items: [{ id: "apple", grams: 160 }, { id: "almond", grams: 25 }] },
-    { mealType: "Ara Ogun", recipeName: "Avokadolu Ara Ogun", items: [{ id: "avocado", grams: 90 }, { id: "banana", grams: 90 }] }
+    { mealType: "Ara Ogun", recipeName: "Avokadolu Ara Ogun", items: [{ id: "avocado", grams: 90 }, { id: "banana", grams: 90 }] },
+    { mealType: "Ara Ogun", recipeName: "Yogurtlu Elma", items: [{ id: "yogurt", grams: 180 }, { id: "apple", grams: 120 }] },
+    { mealType: "Ara Ogun", recipeName: "Bademli Muz Kasesi", items: [{ id: "banana", grams: 100 }, { id: "almond", grams: 20 }] },
+    { mealType: "Ara Ogun", recipeName: "Nohutlu Mini Kase", items: [{ id: "chickpea", grams: 120 }] },
+    { mealType: "Ara Ogun", recipeName: "Ispanakli Yogurt Dip", items: [{ id: "spinach", grams: 100 }, { id: "yogurt", grams: 140 }] },
+    { mealType: "Ara Ogun", recipeName: "Elma ve Avokado", items: [{ id: "apple", grams: 120 }, { id: "avocado", grams: 60 }] }
   ];
 
   if (dietPreference === "vegan") return templates.filter((t) => !t.items.some((i) => ["chicken", "egg"].includes(i.id)));
@@ -281,6 +368,40 @@ function updateLlmText(llmText) {
   if (llmEl) llmEl.textContent = llmText;
 }
 
+async function saveCurrentPlan() {
+  if (!currentSession?.access_token || !latestPlan || !latestInput) {
+    setAuthMessage("Kayit icin once giris yap ve plan uret.", true);
+    return;
+  }
+  try {
+    const response = await fetch("/api/plans", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentSession.access_token}`
+      },
+      body: JSON.stringify({
+        planName: "Haftalik Plan",
+        constraints: latestInput,
+        planData: {
+          targets: latestTargets,
+          mealsByDay: latestPlan.mealsByDay,
+          weeklyCost: latestPlan.weeklyCost,
+          macroSummary: latestPlan.macroSummary
+        }
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setAuthMessage(data.error || "Plan kaydedilemedi.", true);
+      return;
+    }
+    setAuthMessage(`Plan Supabase'e kaydedildi. Plan ID: ${data.planId}`);
+  } catch (error) {
+    setAuthMessage(String(error.message || error), true);
+  }
+}
+
 function renderShoppingList(list) {
   shoppingList.innerHTML = "";
   for (const item of list) {
@@ -292,6 +413,10 @@ function renderShoppingList(list) {
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!currentSession?.user) {
+    setAuthMessage("Plan olusturmak icin once giris yapmalisin.", true);
+    return;
+  }
 
   const input = {
     weight: Number(document.getElementById("weight").value),
@@ -313,6 +438,7 @@ form.addEventListener("submit", async (e) => {
     const validation = validatePlan(plan, input, targets);
     latestInput = input;
     latestPlan = plan;
+    latestTargets = targets;
     renderResults(plan, validation, "LLM aciklamasi aliniyor...", targets, input);
     renderShoppingList(await buildShoppingList(plan));
     const llmText = await renderLLMExplanation(plan, targets, input);
@@ -333,4 +459,56 @@ replanBtn.addEventListener("click", async () => {
   renderShoppingList(await buildShoppingList(newPlan));
   const llmText = await renderLLMExplanation(newPlan, targets, latestInput);
   updateLlmText(llmText);
+});
+
+signupBtn.addEventListener("click", async () => {
+  try {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value.trim();
+    if (!email || !password) {
+      setAuthMessage("E-posta ve sifre zorunlu.", true);
+      return;
+    }
+    const { error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      setAuthMessage(error.message, true);
+      return;
+    }
+    setAuthMessage("Uye kaydi basarili. Mail onayi aciksa e-postani kontrol et.");
+  } catch (error) {
+    setAuthMessage(String(error.message || error), true);
+  }
+});
+
+loginBtn.addEventListener("click", async () => {
+  try {
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value.trim();
+    if (!email || !password) {
+      setAuthMessage("E-posta ve sifre zorunlu.", true);
+      return;
+    }
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthMessage(error.message, true);
+      return;
+    }
+    setAuthMessage("Giris basarili.");
+  } catch (error) {
+    setAuthMessage(String(error.message || error), true);
+  }
+});
+
+logoutBtn.addEventListener("click", async () => {
+  if (!supabaseClient) return;
+  await supabaseClient.auth.signOut();
+  setAuthMessage("Cikis yapildi.");
+});
+
+savePlanBtn.addEventListener("click", async () => {
+  await saveCurrentPlan();
+});
+
+initSupabaseAuth().catch((error) => {
+  setAuthMessage(`Auth baslatilamadi: ${String(error.message || error)}`, true);
 });

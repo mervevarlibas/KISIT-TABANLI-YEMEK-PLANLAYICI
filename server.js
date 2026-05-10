@@ -1,12 +1,27 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { initDb, searchFoods, getFoodById } = require("./src/db");
+const dotenv = require("dotenv");
+const { createSupabaseDb } = require("./src/supabaseDb");
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
 const LM_STUDIO_BASE_URL = process.env.LM_STUDIO_BASE_URL || "http://127.0.0.1:1234/v1";
 const LM_STUDIO_MODEL = process.env.LM_STUDIO_MODEL || "local-model";
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || "";
+const SUPABASE_FOODS_TABLE = process.env.SUPABASE_FOODS_TABLE || "foods";
+const SUPABASE_MEAL_PLANS_TABLE = process.env.SUPABASE_MEAL_PLANS_TABLE || "meal_plans";
+
+const normalizedSupabaseUrl = SUPABASE_URL.replace(/\/rest\/v1\/?$/, "");
+const db = createSupabaseDb({
+  url: normalizedSupabaseUrl,
+  publishableKey: SUPABASE_PUBLISHABLE_KEY,
+  tableName: SUPABASE_FOODS_TABLE,
+  mealPlansTableName: SUPABASE_MEAL_PLANS_TABLE
+});
 
 app.use(cors());
 app.use(express.json());
@@ -23,7 +38,14 @@ function scaleNutrition(food, grams) {
 }
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, db: "supabase" });
+});
+
+app.get("/api/config/public", (_req, res) => {
+  res.json({
+    supabaseUrl: normalizedSupabaseUrl,
+    supabasePublishableKey: SUPABASE_PUBLISHABLE_KEY
+  });
 });
 
 app.get("/api/foods", async (req, res) => {
@@ -36,7 +58,7 @@ app.get("/api/foods", async (req, res) => {
         .filter(Boolean)
     : [];
   try {
-    const foods = await searchFoods({
+    const foods = await db.searchFoods({
       query,
       preference,
       excludeAllergens
@@ -50,7 +72,7 @@ app.get("/api/foods", async (req, res) => {
 app.get("/api/foods/:id/nutrition", async (req, res) => {
   const grams = Number(req.query.grams || 100);
   try {
-    const food = await getFoodById(req.params.id);
+    const food = await db.getFoodById(req.params.id);
     if (!food) {
       return res.status(404).json({ error: "Food bulunamadi" });
     }
@@ -67,7 +89,7 @@ app.get("/api/foods/:id/nutrition", async (req, res) => {
 app.get("/api/foods/:id/price", async (req, res) => {
   const grams = Number(req.query.grams || 100);
   try {
-    const food = await getFoodById(req.params.id);
+    const food = await db.getFoodById(req.params.id);
     if (!food) {
       return res.status(404).json({ error: "Food bulunamadi" });
     }
@@ -128,13 +150,33 @@ Kisa bir aciklama yap ve 2 alternatif degisim onerisi ver.`;
   }
 });
 
-initDb()
+app.post("/api/plans", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    if (!token) return res.status(401).json({ error: "Yetkisiz istek. Giris yap." });
+
+    const { planName, constraints, planData } = req.body || {};
+    if (!planData) return res.status(400).json({ error: "planData gerekli." });
+
+    const saved = await db.saveMealPlan({ accessToken: token, planName, constraints, planData });
+    return res.json({ ok: true, planId: saved.id });
+  } catch (error) {
+    return res.status(500).json({ error: "Plan kaydedilemedi", details: String(error.message || error) });
+  }
+});
+
+db
+  .initDb()
   .then(() => {
+    console.log(`Supabase foods table OK: ${SUPABASE_FOODS_TABLE}`);
+  })
+  .catch((error) => {
+    console.error("DB init warning:", error.message || error);
+    console.error(`SUPABASE_FOODS_TABLE degerini kontrol et. Su an: ${SUPABASE_FOODS_TABLE}`);
+  })
+  .finally(() => {
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
-  })
-  .catch((error) => {
-    console.error("DB init error:", error);
-    process.exit(1);
   });

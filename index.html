@@ -8,12 +8,39 @@
   </head>
   <body>
     <main class="container">
-      <h1>KISIT TABANLI YEMEK PLANLAYICI</h1>
-      <p class="subtitle">
-        Alerji, butce ve hedefe göre güvenli haftalık yemek planı
-      </p>
+      <div class="hero">
+        <h1>KISIT TABANLI YEMEK PLANLAYICI</h1>
+        <p class="subtitle">Alerji, butce ve hedefe gore guvenli haftalik yemek plani</p>
+      </div>
 
-      <section class="card">
+      <section class="card auth-card" id="authCard">
+        <h2>Hesabina Giris Yap</h2>
+        <p class="muted">Plan olusturmak icin uye ol veya giris yap.</p>
+        <form id="authForm">
+          <label>
+            E-posta
+            <input type="email" id="authEmail" required />
+          </label>
+          <label>
+            Sifre
+            <input type="password" id="authPassword" minlength="6" required />
+          </label>
+          <div class="auth-actions">
+            <button type="button" id="signupBtn">Uye Ol</button>
+            <button type="button" id="loginBtn">Giris Yap</button>
+          </div>
+        </form>
+        <p id="authMessage" class="muted"></p>
+      </section>
+
+      <section class="card hidden" id="userCard">
+        <div class="user-row">
+          <p id="userEmail"></p>
+          <button type="button" id="logoutBtn" class="ghost-btn">Cikis Yap</button>
+        </div>
+      </section>
+
+      <section class="card hidden" id="plannerCard">
         <h2>Kullanici Bilgileri</h2>
         <form id="plannerForm">
           <div class="grid">
@@ -93,7 +120,10 @@
       <section class="card hidden" id="resultCard">
         <div class="result-header">
           <h2>Haftalik Plan</h2>
-          <button id="replanBtn" type="button">Bu Ogunu Degistir (Demo)</button>
+          <div class="auth-actions">
+            <button id="savePlanBtn" type="button">Plani Kaydet</button>
+            <button id="replanBtn" type="button">Bu Ogunu Degistir (Demo)</button>
+          </div>
         </div>
         <div id="validation"></div>
         <div id="planOutput"></div>
@@ -102,6 +132,7 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./app.js"></script>
   </body>
 </html>

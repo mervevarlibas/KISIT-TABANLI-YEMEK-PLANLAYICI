@@ -4,15 +4,24 @@
 
 body {
   margin: 0;
-  font-family: 'Georgia', sans-serif;
-  background: #c4a7f0;
-  color: #11171f;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #2f2a24;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 248, 234, 0.95), transparent 40%),
+    radial-gradient(circle at 88% 22%, rgba(231, 242, 223, 0.6), transparent 40%),
+    linear-gradient(135deg, #f3e9d9 0%, #e9dcc8 50%, #f0e6d6 100%);
+  min-height: 100vh;
 }
 
 .container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 24px;
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 26px 60px rgba(95, 73, 35, 0.17);
 }
 
 h1,
@@ -21,16 +30,26 @@ h3 {
   margin-top: 0;
 }
 
+.hero {
+  border-radius: 18px;
+  padding: 22px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.86), rgba(255, 245, 231, 0.7)),
+    radial-gradient(circle at 75% 15%, rgba(208, 236, 197, 0.25), transparent 50%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+
 .subtitle {
-  color: #340202;
+  color: #5f5244;
 }
 
 .card {
-  background: #d5b8c7;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
   padding: 20px;
   margin-top: 16px;
-  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.08);
+  box-shadow: 0 14px 28px rgba(89, 67, 31, 0.12);
 }
 
 .grid {
@@ -43,7 +62,7 @@ h3 {
 label {
   display: flex;
   flex-direction: column;
-  font-size: 16px;
+  font-size: 14px;
   gap: 6px;
   margin-bottom: 10px;
 }
@@ -52,20 +71,22 @@ input,
 select,
 button {
   padding: 10px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #dcc9ad;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 button {
   cursor: pointer;
-  background: #2563eb;
+  background: #8a6d3b;
   color: #fff;
   border: none;
+  font-weight: 600;
 }
 
 button:hover {
-  background: #1e40af;
+  background: #71542b;
 }
 
 .result-header {
@@ -76,10 +97,11 @@ button:hover {
 }
 
 .day-block {
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e8d9c4;
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 12px;
+  background: rgba(255, 251, 244, 0.85);
 }
 
 .safe {
@@ -96,4 +118,29 @@ button:hover {
 
 .hidden {
   display: none;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.muted {
+  color: #6e6151;
+}
+
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ghost-btn {
+  background: rgba(138, 109, 59, 0.15);
+  color: #6a512d;
+  border: 1px solid rgba(138, 109, 59, 0.3);
+}
+
+.ghost-btn:hover {
+  background: rgba(138, 109, 59, 0.26);
 }
